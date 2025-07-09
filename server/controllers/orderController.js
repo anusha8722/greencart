@@ -41,8 +41,11 @@ res.json({success:true,message: "Order Placed Successfully"})
 //Place Order Stripe : /api/order/stripe
 export const placeOrderStripe = async (req,res)=>{
     try {
-        const {userId, items, address} = req.body;
+        const { items, address} = req.body;
+        const userId = req.userId; // ✅ from middleware
+
 const {origin} = req.headers;
+
 
         if(!address || items.length === 0){
             return res.json({success: false, message:"Invalid date"})
@@ -125,7 +128,7 @@ export const stripeWebhooks = async (req,res)=>{
             }
 //Handle the event
 switch (event.type) {
-    case "payment_intent.succeeded":{
+    case "payment_intent.payment_succeeded":{
         const paymentIntent = event.data.object;
                 const paymentIntentId = paymentIntent.id;
 //Getting Session Metadata
@@ -134,13 +137,13 @@ const session  = await stripeInstance.checkout.sessions.list({
 });
 const { orderId, userId } = session.data[0].metadata;
 //Mark Payment as Paid
-await Order.findByIdAndUpdate(orderId, {isPaid: true})
+await Order.findByIdAndUpdate(orderId, {isPaid: true});
 //Clear user cart
 await User.findByIdAndUpdate(userId, {cartItems:{}});
   
         break;
     }
-       case "payment_intent.failed": {
+       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object;
                 const paymentIntentId = paymentIntent.id;
 //Getting Session Metadata
