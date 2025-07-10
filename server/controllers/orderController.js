@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import Stripe from "stripe";
+import stripe from "stripe";
 import User from "../models/User.js";
 
 //Place Order COD : /api/order/cod
@@ -28,11 +28,11 @@ return(await acc) + product.offerPrice * item.quantity;
             address,
             paymentType:"COD",
         });
-res.json({success:true,message: "Order Placed Successfully"})
+return res.json({success:true,message: "Order Placed Successfully"})
         
     } catch (error) {
-        console.log(error.message);
-       res.json({success: false, message: error.message });
+       
+   return res.json({success: false, message: error.message });
         
     }
 }
@@ -74,7 +74,7 @@ return(await acc) + product.offerPrice * item.quantity;
             paymentType:"Online",
         });
         //Stripe Gateway Initialize
-        const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
         //create line items for stripe
 const line_items = productData.map((item)=>{
@@ -112,10 +112,10 @@ return res.json({success:true,url: session.url});
 }
 
 //Stripe Webhooks to Verify payments Action : /stripe
-export const stripeWebhooks = async (req,res)=>{
+export const stripeWebhooks = async (request,response)=>{
     //Stripe Gateway Initialize
-            const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
-            const sig = req.headers["stripe-signature"];
+            const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+            const sig = request.headers["stripe-signature"];
             let event;
             try {
                 event = stripeInstance.webhooks.constructEvent(
@@ -124,11 +124,11 @@ export const stripeWebhooks = async (req,res)=>{
                     process.env.STRIPE_WEBHOOK_SECRET
                 );
             } catch (error) {
-                res.status(400).send(`Webhook Error: ${error.message}`)
+                response.status(400).send(`Webhook Error: ${error.message}`)
             }
 //Handle the event
 switch (event.type) {
-    case "payment_intent.payment_succeeded":{
+    case "payment_intent.succeeded":{
         const paymentIntent = event.data.object;
                 const paymentIntentId = paymentIntent.id;
 //Getting Session Metadata
@@ -160,7 +160,7 @@ await Order.findByIdAndDelete(orderId);
        break;
      
 }
-  res.json({received: true});
+  response.json({received: true});
 }
 
 

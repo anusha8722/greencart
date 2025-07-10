@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets} from "../assets/assets";
 import toast from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 const Cart = () => {
   const {
     products,
@@ -10,12 +11,13 @@ const Cart = () => {
     removeFromCart,
     getCartCount,
     updateCartItem,
-    Navigate,
+    
     getCartAmount,
     axios,
     user,
     setCartItems,
   } = useAppContext();
+   const navigate = useNavigate();
   const [cartArray, setCartArray] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [showAddress, setShowAddress] = useState(false);
@@ -56,7 +58,7 @@ const Cart = () => {
  }
 
  //if Payment Is COD
- if(paymentOption == "COD"){
+ if(paymentOption === "COD"){
   const {data} =await axios.post('/api/order/cod',{
   userId : user._id,
   items: cartArray.map(item=>({product: item._id, quantity: item.quantity})),
@@ -65,7 +67,7 @@ const Cart = () => {
   if(data.success){
     toast.success(data.message)
     setCartItems({})
-    Navigate('/my-orders')
+   navigate('/my-orders')
   }else{
     toast.error(data.message)
   }
@@ -123,7 +125,7 @@ const Cart = () => {
             <div className="flex items-center md:gap-6 gap-3">
               <div
                 onClick={() => {
-                  Navigate(
+                 navigate(
                     `/products/$(product.category.toLowerCase()}/${product._id}`
                   );
                   scrollTo(0, 0);
@@ -178,7 +180,7 @@ const Cart = () => {
 
         <button
           onClick={() => {
-            Navigate("/products");
+           navigate("/products");
             scrollTo(0, 0);
           }}
           className="group cursor-pointer flex items-center mt-8 gap-2 text-primary font-medium"
@@ -226,7 +228,7 @@ const Cart = () => {
                   </p>
                 ))}
                 <p
-                  onClick={() => Navigate("/add-address")}
+                  onClick={() => navigate("/add-address")}
                   className="text-primary text-center cursor-pointer p-2 hover:bg-primary/10"
                 >
                   Add address
